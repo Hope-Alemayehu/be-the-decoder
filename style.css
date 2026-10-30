@@ -1,0 +1,434 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel-border: #272e38;
+  --text: #e6e9ee;
+  --muted: #8b95a3;
+  --edge: #3a4351;
+  --node: #4a5462;
+  --boundary: #6b7686;
+  --defect: #ffc53d;
+  --errors: #ff5c5c;
+  --player: #4da3ff;
+  --mwpm: #3ddc97;
+  --chain: #d66bff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Top bar */
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.topbar h1 {
+  margin: 0 auto 0 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+#seed {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+#defect-count {
+  min-width: 2ch;
+  color: var(--defect);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+select,
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+}
+
+select {
+  padding: 5px 8px;
+}
+
+button {
+  padding: 9px 20px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--boundary);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--player);
+  border-color: var(--player);
+  color: #06121f;
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* Layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+.play {
+  min-width: 0;
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 170px);
+  min-height: 340px;
+  touch-action: manipulation;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+/* Side panel */
+
+.banner {
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 650;
+  text-align: center;
+  animation: banner-in 220ms ease-out;
+}
+
+.banner.safe {
+  background: color-mix(in srgb, var(--mwpm) 18%, var(--panel));
+  color: var(--mwpm);
+}
+
+.banner.logical {
+  background: color-mix(in srgb, var(--errors) 18%, var(--panel));
+  color: var(--errors);
+}
+
+.banner.gave-up {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.banner-detail {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.layers {
+  display: grid;
+  gap: 6px;
+  margin: 16px 0 0;
+  padding: 10px 14px 12px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.layers legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.layer-toggle.errors input { accent-color: var(--errors); }
+.layer-toggle.player input { accent-color: var(--player); }
+.layer-toggle.mwpm input { accent-color: var(--mwpm); }
+.layer-toggle.chain input { accent-color: var(--chain); }
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.stats > div {
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.stats .stat-wide {
+  grid-column: 1 / -1;
+}
+
+.stats dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stats dd {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Board */
+
+.boundary-bar {
+  stroke: var(--boundary);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.boundary-label {
+  fill: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+}
+
+.edge {
+  cursor: pointer;
+}
+
+.edge:focus {
+  outline: none;
+}
+
+.edge-hit {
+  stroke: transparent;
+  stroke-width: 30;
+  pointer-events: stroke;
+}
+
+.edge-line {
+  stroke: var(--edge);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke 90ms ease-out, stroke-width 90ms ease-out;
+}
+
+.edge:hover .edge-line,
+.edge:focus-visible .edge-line {
+  stroke: var(--boundary);
+  stroke-width: 8;
+}
+
+.edge.corrected .edge-line {
+  stroke: var(--player);
+  stroke-width: 7;
+}
+
+.edge.corrected:hover .edge-line,
+.edge.corrected:focus-visible .edge-line {
+  stroke-width: 10;
+}
+
+.revealed .edge {
+  cursor: default;
+  pointer-events: none;
+}
+
+.check {
+  fill: var(--node);
+  transition: fill 120ms ease-out;
+}
+
+.check.lit {
+  fill: var(--defect);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 1.3s ease-in-out infinite;
+}
+
+.pop {
+  fill: var(--defect);
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 320ms ease-out forwards;
+}
+
+.layer line {
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.layer-errors line {
+  stroke: var(--errors);
+  stroke-width: 5;
+}
+
+.layer-player line {
+  stroke: var(--player);
+  stroke-width: 5;
+}
+
+.layer-mwpm line {
+  stroke: var(--mwpm);
+  stroke-width: 5;
+  stroke-dasharray: 9 8;
+  stroke-linecap: butt;
+}
+
+.layer-chain line {
+  stroke: var(--chain);
+  stroke-width: 20;
+  stroke-opacity: 0.32;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 3px var(--defect));
+  }
+  50% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 11px var(--defect));
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@keyframes banner-in {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+}
+
+/* How to play overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(5 7 10 / 72%);
+}
+
+.overlay-card {
+  max-width: 460px;
+  padding: 22px 26px 24px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.overlay-card h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.overlay-card p {
+  margin: 0 0 12px;
+  color: #c4cbd5;
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    padding: 12px 16px;
+  }
+
+  .topbar h1 {
+    flex-basis: 100%;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 16px;
+  }
+
+  #board {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check.lit {
+    animation: none;
+    filter: drop-shadow(0 0 7px var(--defect));
+  }
+
+  .banner {
+    animation: none;
+  }
+}

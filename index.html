@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Be the Decoder</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Be the Decoder</h1>
+      <label class="field">
+        <span class="field-label">Difficulty</span>
+        <select id="preset"></select>
+      </label>
+      <div class="field">
+        <span class="field-label">Seed</span>
+        <a id="seed" title="Link to replay this round"></a>
+      </div>
+      <div class="field">
+        <span class="field-label">Defects</span>
+        <strong id="defect-count">0</strong>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="play">
+        <svg id="board" role="group" aria-label="Surface code lattice"></svg>
+        <div class="controls">
+          <button id="submit" class="primary" type="button">Submit</button>
+          <button id="give-up" type="button">Give up</button>
+          <button id="next" type="button">Next round</button>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div id="banner" class="banner" hidden></div>
+        <p id="banner-detail" class="banner-detail" hidden></p>
+
+        <fieldset id="layers" class="layers" hidden>
+          <legend>Layers</legend>
+          <label class="layer-toggle errors">
+            <input type="checkbox" data-layer="errors" checked />
+            Hidden errors
+          </label>
+          <label class="layer-toggle player">
+            <input type="checkbox" data-layer="player" checked />
+            Your correction
+          </label>
+          <label class="layer-toggle mwpm">
+            <input type="checkbox" data-layer="mwpm" checked />
+            MWPM correction
+          </label>
+          <label id="chain-toggle" class="layer-toggle chain" hidden>
+            <input type="checkbox" data-layer="chain" checked />
+            Logical chain
+          </label>
+        </fieldset>
+
+        <dl class="stats">
+          <div class="stat-wide">
+            <dt>Weight (you vs MWPM)</dt>
+            <dd id="weights">–</dd>
+          </div>
+          <div>
+            <dt>Streak</dt>
+            <dd id="streak">0</dd>
+          </div>
+          <div>
+            <dt>Best streak</dt>
+            <dd id="best-streak">0</dd>
+          </div>
+          <div>
+            <dt>Your win rate</dt>
+            <dd id="player-rate">–</dd>
+          </div>
+          <div>
+            <dt>MWPM win rate</dt>
+            <dd id="mwpm-rate">–</dd>
+          </div>
+          <div class="stat-wide">
+            <dt>Rounds played</dt>
+            <dd id="rounds">0</dd>
+          </div>
+        </dl>
+      </aside>
+    </main>
+
+    <div id="help" class="overlay" hidden>
+      <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <h2 id="help-title">How to play</h2>
+        <p>
+          Hidden bit-flip errors have hit the data qubits, the edges of this lattice. The glowing
+          nodes are defects: they sit at the ends of error chains. Click edges to flip them until
+          no defect is lit, joining defects to each other or to a boundary, then press Submit.
+        </p>
+        <p>
+          You win if what is left over does not connect the left boundary to the right boundary,
+          which would be a logical error. The reveal then shows the real errors and how a
+          minimum-weight perfect matching decoder did on the same round.
+        </p>
+        <button id="help-close" class="primary" type="button">Start decoding</button>
+      </div>
+    </div>
+
+    <script type="module" src="src/ui.js"></script>
+  </body>
+</html>
