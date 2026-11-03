@@ -44,6 +44,18 @@ Each level awards up to three stars, and the map shows your best:
 2. Two if your fix is no longer than MWPM's, or MWPM lost the round.
 3. Three if you did that on your first try without a hint. Replays count as a first try.
 
+### Break the decoder
+
+Switch to the **Break** tab on the Levels screen to change sides. You place the errors, MWPM tries to fix them, and you win if its fix completes a chain between the boundaries. Your first visit starts a short Break tour.
+
+There are 12 levels in three tiers:
+
+- **Learn (1–3):** open boards at d = 3, 5 and 7, where it always takes (d + 1) / 2 errors.
+- **Shields (4–9):** dotted qubits cannot take an error, so the obvious attacks are blocked.
+- **Sabotage (10–12):** some errors are already in place, shown in dark red. Add as few as you can.
+
+Each level has a par, the fewest errors that can break MWPM there. Hitting par earns three stars, one over earns two, and any break earns one. A failed attempt keeps the same puzzle. Break progress is saved separately from the Decode levels. Every par is checked by brute force in the tests.
+
 ### Free play
 
 The **Free play** button on the Levels screen gives you endless rounds at any difficulty. Changing difficulty during a round drops that round without scoring it, and so does leaving a level for the Levels screen.
@@ -74,7 +86,7 @@ The tests need Node.js 22.7 or newer and have no dependencies:
 node tests/decoder.test.js
 ```
 
-They cover the decoder against brute force, correction validity, the logical check, threshold behaviour, seeding, scoring, levels and stars, undo, hints, drawn paths and the tour script.
+They cover the decoder against brute force, correction validity, the logical check, threshold behaviour, seeding, scoring, levels and stars, undo, hints, drawn paths, the tour scripts and every Break level's par.
 
 ## Project layout
 
@@ -85,7 +97,8 @@ src/rng.js            seeded PRNG
 src/lattice.js        lattice construction, syndrome, logical check
 src/decoder.js        bitmask DP matching and path reconstruction
 src/game.js           round state and scoring
-src/tour.js           guided tour script
+src/break.js          Break the decoder puzzles and rules
+src/tour.js           guided tour scripts
 src/ui.js             SVG rendering and click handling
 tests/decoder.test.js test suite
 ```

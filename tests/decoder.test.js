@@ -35,7 +35,7 @@ import {
   emptyProgress,
   emptyStats,
   generateErrors,
-  hasSeenTour,
+  hasSeen,
   levelAttempt,
   levelPreset,
   levelSeed,
@@ -43,7 +43,7 @@ import {
   liveDefects,
   loadProgress,
   loadStats,
-  markTourSeen,
+  markSeen,
   newRound,
   recordLevelResult,
   recordResult,
@@ -59,7 +59,20 @@ import {
   totalStars,
   undoMove,
 } from '../src/game.js';
-import { TOUR_DISTANCE, TOUR_STEPS } from '../src/tour.js';
+import { BREAK_TOUR_STEPS, TOUR_DISTANCE, TOUR_STEPS } from '../src/tour.js';
+import {
+  BREAK_LEVELS,
+  BREAK_LEVEL_COUNT,
+  BREAK_PROGRESS_KEY,
+  BREAK_TIERS,
+  attack,
+  breakRound,
+  breakStars,
+  breakVerdict,
+  canRun,
+  placedCount,
+  runDecoder,
+} from '../src/break.js';
 
 let failures = 0;
 
@@ -631,11 +644,127 @@ test('tour: scripted rounds behave like normal rounds', () => {
 test('tour: seen flag round-trips and survives broken storage', () => {
   const store = new Map();
   const storage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) };
-  assert.equal(hasSeenTour(storage), false);
-  markTourSeen(storage);
-  assert.equal(hasSeenTour(storage), true);
-  assert.equal(hasSeenTour(null), false);
-  markTourSeen(null);
+  assert.equal(hasSeen(storage, 'tour'), false);
+  markSeen(storage, 'tour');
+  assert.equal(hasSeen(storage, 'tour'), true);
+  assert.equal(store.get('be-the-decoder.tour-seen'), '1');
+  assert.equal(hasSeen(storage, 'break-tour'), false);
+  assert.equal(hasSeen(null, 'tour'), false);
+  markSeen(null, 'tour');
+});
+
+// Is there any set of `size` allowed edges that makes MWPM fail on this board?
+function anyBreak(lattice, board, allowed, size, start = 0) {
+  if (size === 0) return attack(lattice, board).broke;
+  for (let i = start; i <= allowed.length - size; i++) {
+    board[allowed[i]] ^= 1;
+    const broke = anyBreak(lattice, board, allowed, size - 1, i + 1);
+    board[allowed[i]] ^= 1;
+    if (broke) return true;
+  }
+  return false;
+}
+
+test('break: 12 levels in tiers of 3, 6 and 3', () => {
+  assert.equal(BREAK_LEVEL_COUNT, 12);
+  assert.deepEqual(BREAK_TIERS.map((tier) => tier.size), [3, 6, 3]);
+  for (const level of BREAK_LEVELS) assert.ok(level.title && level.goal && [3, 5, 7].includes(level.d));
+});
+
+test('break: every par is reached by its solution and nothing smaller works', () => {
+  BREAK_LEVELS.forEach((level, index) => {
+    const round = breakRound(index + 1);
+    const { lattice } = round;
+    const locked = new Set([...level.shielded, ...level.fixed]);
+    assert.equal(level.solution.length, level.par, level.title);
+    assert.ok(level.solution.every((id) => !locked.has(id)), `${level.title} solution avoids locked edges`);
+
+    const allowed = lattice.edges.map((edge) => edge.id).filter((id) => !locked.has(id));
+    const board = xorFlips(round.errors, round.correction);
+    assert.equal(anyBreak(lattice, board, allowed, level.par - 1), false, `${level.title}: par ${level.par} is not the minimum`);
+
+    applyMove(round, level.solution);
+    assert.equal(runDecoder(round).broke, true, `${level.title}: solution should break MWPM`);
+  });
+});
+
+test('break: open boards take (d + 1) / 2 errors, as the tour says', () => {
+  for (const level of BREAK_LEVELS.slice(0, 3)) {
+    assert.equal(level.shielded.length + level.fixed.length, 0);
+    assert.equal(level.par, (level.d + 1) / 2);
+  }
+});
+
+test('break: shielded and fixed edges cannot be changed, other edges can', () => {
+  const round = breakRound(12);
+  const [shielded] = BREAK_LEVELS[11].shielded;
+  const [fixed] = BREAK_LEVELS[11].fixed;
+  assert.equal(canRun(round), false);
+  assert.equal(applyMove(round, [shielded]), false);
+  assert.equal(applyMove(round, [fixed]), false);
+  assert.equal(applyMove(round, [0, shielded]), false);
+  assert.equal(placedCount(round), 0);
+  assert.equal(round.errors[fixed], 1);
+  assert.equal(applyMove(round, [0]), true);
+  assert.equal(placedCount(round), 1);
+  assert.equal(canRun(round), true);
+  clearCorrection(round);
+  assert.equal(placedCount(round), 0);
+  assert.equal(round.errors[fixed], 1);
+});
+
+test('break: a lone error is fixed, and the verdict says why more are needed', () => {
+  const round = breakRound(1);
+  applyMove(round, [0]);
+  const result = runDecoder(round);
+  assert.equal(result.broke, false);
+  assert.equal(breakStars(result, 2), 0);
+  assert.match(breakVerdict(round, 2), /^MWPM survived.*fewer than 2 errors/);
+});
+
+test('break: the verdict explains which way MWPM was misled', () => {
+  const round = breakRound(1);
+  applyMove(round, BREAK_LEVELS[0].solution);
+  runDecoder(round);
+  assert.equal(breakVerdict(round, 2), 'MWPM saw a defect 2 steps from the left and 1 step from the right, so it went right and completed the chain.');
+  assert.ok(round.result.chain.length === 3);
+});
+
+test('break: stars for par, one over and anything more', () => {
+  const won = (placed) => ({ broke: true, placed });
+  assert.equal(breakStars(won(3), 3), 3);
+  assert.equal(breakStars(won(4), 3), 2);
+  assert.equal(breakStars(won(5), 3), 1);
+  assert.equal(breakStars(won(9), 3), 1);
+  assert.equal(breakStars({ broke: false, placed: 1 }, 3), 0);
+});
+
+test('break: progress is saved apart from the Decode levels', () => {
+  const store = new Map();
+  const storage = { getItem: (key) => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) };
+  const breakProgress = recordStars({ ...emptyProgress(BREAK_LEVEL_COUNT), cleared: 4 }, 2, 3);
+  saveProgress(storage, breakProgress, BREAK_PROGRESS_KEY);
+  assert.deepEqual(loadProgress(storage, BREAK_PROGRESS_KEY, BREAK_LEVEL_COUNT), breakProgress);
+  assert.deepEqual(loadProgress(storage), emptyProgress());
+  assert.equal(loadProgress(storage, BREAK_PROGRESS_KEY, BREAK_LEVEL_COUNT).stars.length, 12);
+});
+
+test('break tour: the claims in each step hold', () => {
+  let round = null;
+  const played = BREAK_TOUR_STEPS.map((step) => {
+    if (step.puzzle) round = scriptedRound(TOUR_DISTANCE, step.puzzle.errors);
+    for (const id of step.flip ?? []) toggleCorrection(round, id);
+    if (step.submit) runDecoder(round);
+    return { step, round, defects: liveDefects(round) };
+  });
+  const [, one, firstRun, two, secondRun] = played;
+  assert.deepEqual(one.defects.map(({ r, c }) => [r, c]), [[1, 0]]);
+  assert.equal(firstRun.round.result.broke, false);
+  assert.deepEqual(two.defects.map(({ r, c }) => [r, c]), [[1, 1]]);
+  assert.equal(secondRun.round.result.broke, true);
+  assert.equal(secondRun.round.result.placed, 2);
+  assert.equal(secondRun.round.result.mwpmWeight, 1);
+  for (const { step } of played) if (step.flip || step.submit) assert.ok(step.why, step.title);
 });
 
 console.log(failures === 0 ? '\nAll tests passed.' : `\n${failures} test(s) failed.`);

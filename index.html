@@ -26,15 +26,24 @@
         <span class="field-label">Defects</span>
         <strong id="defect-count">0</strong>
       </div>
+      <div id="placed-field" class="field" hidden>
+        <span class="field-label">Errors</span>
+        <strong id="placed-count">0</strong>
+      </div>
       <button id="levels-button" type="button" hidden>Levels</button>
       <button id="help-open" type="button">How to play</button>
     </header>
 
     <main id="levels-screen" class="levels" hidden>
       <div class="levels-header">
-        <h2 id="levels-progress"></h2>
+        <div class="mode-switch" role="tablist" aria-label="Campaign">
+          <button id="tab-decode" role="tab" type="button" data-campaign="decode">Decode</button>
+          <button id="tab-break" role="tab" type="button" data-campaign="break">Break</button>
+        </div>
         <button id="free-play" type="button">Free play</button>
       </div>
+      <p id="campaign-blurb" class="campaign-blurb"></p>
+      <h2 id="levels-progress" class="levels-progress"></h2>
       <svg id="level-map" role="group" aria-label="Level path"></svg>
     </main>
 
@@ -67,6 +76,18 @@
           </div>
         </div>
 
+        <div id="break-card" class="tour-card break-card" hidden>
+          <p id="break-level" class="tour-count"></p>
+          <h2 id="break-title"></h2>
+          <p id="break-goal"></p>
+          <p id="break-par" class="break-par"></p>
+          <ul class="key">
+            <li class="key-errors">Your errors</li>
+            <li class="key-fixed">Already in place</li>
+            <li class="key-shielded">Shielded</li>
+          </ul>
+        </div>
+
         <div id="banner" class="banner" hidden></div>
         <p id="banner-detail" class="banner-detail" hidden></p>
         <p id="verdict" class="verdict" hidden></p>
@@ -80,9 +101,9 @@
           <legend>Layers</legend>
           <label class="layer-toggle errors">
             <input type="checkbox" data-layer="errors" checked />
-            Hidden errors
+            <span id="errors-toggle-label">Hidden errors</span>
           </label>
-          <label class="layer-toggle player">
+          <label id="player-toggle" class="layer-toggle player">
             <input type="checkbox" data-layer="player" checked />
             Your correction
           </label>
@@ -144,6 +165,10 @@
           first try without a hint. Free play gives you endless rounds at any difficulty.
         </p>
         <p>
+          In Break mode you switch sides: place errors so that MWPM's own fix completes a chain
+          between the boundaries, using as few errors as you can.
+        </p>
+        <p>
           To draw a whole path at once, click a defect and then another dot or a boundary bar.
           Shortcuts: Z undo, H hint, Enter submit, N next, Esc cancel.
         </p>
@@ -157,6 +182,7 @@
         <div class="overlay-actions">
           <button id="help-close" class="primary" type="button">Got it</button>
           <button id="help-tour" type="button">Take the tour</button>
+          <button id="help-break-tour" type="button">Break tour</button>
         </div>
       </div>
     </div>

@@ -36,8 +36,6 @@ const ATTEMPT_SEED_STEP = 0x9e3779b9;
 const REPLAY_ATTEMPTS = 1000000;
 
 const STATS_KEY = 'be-the-decoder.stats';
-const HELP_KEY = 'be-the-decoder.help-seen';
-const TOUR_KEY = 'be-the-decoder.tour-seen';
 const PROGRESS_KEY = 'be-the-decoder.progress';
 
 // Samples hidden errors, resampling empty syndromes and rounds the decoder
@@ -51,13 +49,16 @@ export function generateErrors(lattice, p, seed) {
   }
 }
 
-function roundWith(lattice, errors, presetKey, seed) {
+// Locked edges cannot be flipped by a move: the shielded qubits and pre-placed
+// errors of a Break level.
+export function makeRound(lattice, errors, { presetKey = null, seed = null, locked = [] } = {}) {
   return {
     presetKey,
     seed,
     lattice,
     errors,
     correction: emptyFlips(lattice),
+    locked: new Set(locked),
     history: [],
     hintsUsed: 0,
     result: null,
@@ -67,7 +68,7 @@ function roundWith(lattice, errors, presetKey, seed) {
 export function newRound(presetKey, seed) {
   const { d, p } = PRESETS[presetKey];
   const lattice = buildLattice(d);
-  return roundWith(lattice, generateErrors(lattice, p, seed), presetKey, seed);
+  return makeRound(lattice, generateErrors(lattice, p, seed), { presetKey, seed });
 }
 
 // A round with chosen errors, for the guided tour.
@@ -75,18 +76,21 @@ export function scriptedRound(d, errorIds) {
   const lattice = buildLattice(d);
   const errors = emptyFlips(lattice);
   for (const id of errorIds) errors[id] = 1;
-  return roundWith(lattice, errors, null, null);
+  return makeRound(lattice, errors);
 }
 
 export function liveDefects(round) {
   return findDefects(round.lattice, xorFlips(round.errors, round.correction));
 }
 
-// Flips a set of edges as one move, so a drawn path undoes in one step.
+// Flips a set of edges as one move, so a drawn path undoes in one step. A move
+// that touches a locked edge is refused whole.
 export function applyMove(round, edgeIds) {
-  if (round.result || edgeIds.length === 0) return;
+  if (round.result || edgeIds.length === 0) return false;
+  if (edgeIds.some((id) => round.locked.has(id))) return false;
   for (const id of edgeIds) round.correction[id] ^= 1;
   round.history.push([...edgeIds]);
+  return true;
 }
 
 export function toggleCorrection(round, edgeId) {
@@ -208,8 +212,8 @@ export function levelSeed(level, attempt = 0) {
 
 // Progress is the number of levels cleared in order, the finished attempts on
 // the level after them, and the best stars earned on each level.
-export function emptyProgress() {
-  return { cleared: 0, attempts: 0, stars: Array(LEVEL_COUNT).fill(0) };
+export function emptyProgress(count = LEVEL_COUNT) {
+  return { cleared: 0, attempts: 0, stars: Array(count).fill(0) };
 }
 
 export function levelState(progress, level) {
@@ -284,60 +288,46 @@ export function saveStats(storage, stats) {
   }
 }
 
-function validStars(stars) {
-  return Array.isArray(stars) && stars.length === LEVEL_COUNT
-    && stars.every((count) => Number.isInteger(count) && count >= 0 && count <= MAX_STARS);
+function validStars(stars, count) {
+  return Array.isArray(stars) && stars.length === count
+    && stars.every((earned) => Number.isInteger(earned) && earned >= 0 && earned <= MAX_STARS);
 }
 
-// Progress saved before stars existed loads with no stars.
-export function loadProgress(storage) {
+// Each campaign saves its progress under its own key. Progress saved before
+// stars existed loads with no stars.
+export function loadProgress(storage, key = PROGRESS_KEY, count = LEVEL_COUNT) {
   try {
-    const { cleared, attempts, stars } = JSON.parse(storage.getItem(PROGRESS_KEY));
+    const { cleared, attempts, stars } = JSON.parse(storage.getItem(key));
     const valid = Number.isInteger(cleared) && Number.isInteger(attempts)
-      && cleared >= 0 && cleared <= LEVEL_COUNT && attempts >= 0;
-    if (!valid) return emptyProgress();
-    return { cleared, attempts, stars: validStars(stars) ? stars : emptyProgress().stars };
+      && cleared >= 0 && cleared <= count && attempts >= 0;
+    if (!valid) return emptyProgress(count);
+    return { cleared, attempts, stars: validStars(stars, count) ? stars : emptyProgress(count).stars };
   } catch {
-    return emptyProgress();
+    return emptyProgress(count);
   }
 }
 
-export function saveProgress(storage, progress) {
+export function saveProgress(storage, progress, key = PROGRESS_KEY) {
   try {
-    storage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    storage.setItem(key, JSON.stringify(progress));
   } catch {
     // Progress just lasts for this page load.
   }
 }
 
-export function hasSeenHelp(storage) {
+// One-time flags such as 'help' or 'tour', so an intro shows only once.
+export function hasSeen(storage, name) {
   try {
-    return storage.getItem(HELP_KEY) === '1';
+    return storage.getItem(`be-the-decoder.${name}-seen`) === '1';
   } catch {
     return false;
   }
 }
 
-export function markHelpSeen(storage) {
+export function markSeen(storage, name) {
   try {
-    storage.setItem(HELP_KEY, '1');
+    storage.setItem(`be-the-decoder.${name}-seen`, '1');
   } catch {
-    // The overlay just shows again next visit.
-  }
-}
-
-export function hasSeenTour(storage) {
-  try {
-    return storage.getItem(TOUR_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function markTourSeen(storage) {
-  try {
-    storage.setItem(TOUR_KEY, '1');
-  } catch {
-    // The tour just starts again next visit.
+    // The intro just shows again next visit.
   }
 }

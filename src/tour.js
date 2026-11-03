@@ -103,3 +103,56 @@ export const TOUR_STEPS = [
     ],
   },
 ];
+
+// The tour for Break mode. Here flips place errors and Submit runs MWPM.
+export const BREAK_TOUR_STEPS = [
+  {
+    title: 'Switch sides',
+    puzzle: { errors: [], visible: true },
+    body: [
+      'In Break mode you are the noise. You place the errors, then MWPM tries to fix them.',
+      'You win if MWPM ends up making a logical error: its fix plus your errors join the two boundaries.',
+    ],
+  },
+  {
+    title: 'One error',
+    body: ['Click the glowing line to place an error.'],
+    flip: [h(1, 0)],
+    why: [
+      'One defect lit up. It is one step from the left boundary and two from the right, so MWPM will take the short way, straight back over your error.',
+    ],
+  },
+  {
+    title: 'Run MWPM',
+    body: ['Press Run MWPM to let the decoder fix the board.'],
+    submit: true,
+    why: [
+      'Its fix (green) cancelled your error exactly. On this board, a single error can never fool it.',
+    ],
+  },
+  {
+    title: 'Two in a row',
+    puzzle: { errors: [], visible: true },
+    body: ['Now place two errors side by side: click both glowing lines.'],
+    flip: [h(1, 0), h(1, 1)],
+    why: [
+      'The dot between your errors touches two of them, so it stays dark. MWPM now sees one defect, two steps from the left but only one from the right.',
+    ],
+  },
+  {
+    title: 'Run it again',
+    body: ['Press Run MWPM.'],
+    submit: true,
+    why: [
+      'MWPM bet on the shorter side and flipped the last edge on the right. Together with your two errors, that crosses the whole row: a logical error.',
+      'Fooling a distance-3 code took 2 errors. In general it takes (d + 1) / 2, just over half the distance.',
+    ],
+  },
+  {
+    title: 'Your turn',
+    body: [
+      'Each level has a par: the fewest errors that can break MWPM there. Hit par for three stars, or one over for two.',
+      'Dotted lines are shielded and cannot take an error. Solid red lines are errors already in place, which you build on.',
+    ],
+  },
+];
