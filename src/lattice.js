@@ -87,11 +87,16 @@ export function syndrome(lattice, flips) {
   return lit;
 }
 
+// A check as { id, r, c }.
+export function checkAt(lattice, id) {
+  return { id, r: Math.floor(id / lattice.cols), c: id % lattice.cols };
+}
+
 // Lists lit checks as { id, r, c }.
 export function findDefects(lattice, flips) {
   const defects = [];
   syndrome(lattice, flips).forEach((bit, id) => {
-    if (bit) defects.push({ id, r: Math.floor(id / lattice.cols), c: id % lattice.cols });
+    if (bit) defects.push(checkAt(lattice, id));
   });
   return defects;
 }

@@ -15,7 +15,7 @@ export function boundaryWeight(d, defect) {
   return Math.min(defect.c + 1, d - 1 - defect.c);
 }
 
-function nearestBoundary(d, defect) {
+export function nearestBoundary(d, defect) {
   return defect.c + 1 <= d - 1 - defect.c ? LEFT : RIGHT;
 }
 
@@ -92,18 +92,25 @@ export function boundaryPath(lattice, defect, side) {
   return path;
 }
 
-// Returns the minimum-weight correction for the defects, XORing all paths.
+// Returns the minimum-weight correction for the defects, XORing all paths, plus
+// each match: the one or two defects it joins and the path between them.
 export function decode(lattice, defects) {
   const { cost, pairs, toBoundary } = matchDefects(lattice.d, defects);
-  const correction = emptyFlips(lattice);
+  const matches = [
+    ...pairs.map(([i, j]) => ({
+      defects: [defects[i], defects[j]],
+      path: pairPath(lattice, defects[i], defects[j]),
+    })),
+    ...toBoundary.map((i) => ({
+      defects: [defects[i]],
+      path: boundaryPath(lattice, defects[i], nearestBoundary(lattice.d, defects[i])),
+    })),
+  ];
 
-  const flipPath = (path) => {
+  const correction = emptyFlips(lattice);
+  for (const { path } of matches) {
     for (const id of path) correction[id] ^= 1;
-  };
-  for (const [i, j] of pairs) flipPath(pairPath(lattice, defects[i], defects[j]));
-  for (const i of toBoundary) {
-    flipPath(boundaryPath(lattice, defects[i], nearestBoundary(lattice.d, defects[i])));
   }
 
-  return { cost, correction };
+  return { cost, correction, matches };
 }

@@ -109,9 +109,145 @@ button.primary {
   font-weight: 600;
 }
 
+.topbar button {
+  padding: 6px 12px;
+}
+
 :focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
+}
+
+/* Levels screen */
+
+.levels {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 24px 20px;
+}
+
+.levels-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.levels-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+#level-map {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 165px);
+  min-height: 420px;
+}
+
+.map-path {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.map-path.done {
+  stroke: var(--player);
+}
+
+.tier-label {
+  fill: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-anchor: middle;
+}
+
+.level {
+  cursor: pointer;
+}
+
+.level:focus {
+  outline: none;
+}
+
+.level.locked {
+  cursor: not-allowed;
+}
+
+.level-node {
+  fill: #1b212a;
+  stroke: var(--edge);
+  stroke-width: 3;
+  transition: stroke 90ms ease-out;
+}
+
+.level.cleared .level-node {
+  fill: var(--player);
+  stroke: var(--player);
+}
+
+.level.current .level-node {
+  fill: var(--defect);
+  stroke: var(--defect);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.level:not(.locked):hover .level-node,
+.level:not(.locked):focus-visible .level-node {
+  stroke: var(--text);
+}
+
+.level-number {
+  fill: var(--muted);
+  font-size: 19px;
+  font-weight: 650;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.level.cleared .level-number,
+.level.current .level-number {
+  fill: #06121f;
+}
+
+.level-badge {
+  fill: var(--panel);
+  stroke: var(--panel-border);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.level-icon {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.level.cleared .level-icon {
+  stroke: var(--text);
+}
+
+.level-star {
+  fill: none;
+  stroke: var(--boundary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.level-star.earned {
+  fill: var(--defect);
+  stroke: var(--defect);
 }
 
 /* Layout */
@@ -141,8 +277,18 @@ button.primary {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 12px 28px;
   margin-top: 14px;
+}
+
+.tool-buttons,
+.round-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.tool-buttons button {
+  padding: 9px 14px;
 }
 
 /* Side panel */
@@ -176,6 +322,109 @@ button.primary {
   color: var(--muted);
   font-size: 14px;
   text-align: center;
+}
+
+/* Guided tour */
+
+.tour-card {
+  margin-bottom: 14px;
+  padding: 14px 16px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+}
+
+.tour-count {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tour-card h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.tour-card p {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+#tour-body p {
+  color: #c4cbd5;
+}
+
+.tour-why {
+  margin-bottom: 10px;
+  padding-left: 12px;
+  border-left: 3px solid var(--defect);
+}
+
+.tour-why p:last-child {
+  margin-bottom: 0;
+}
+
+.tour-actions,
+.overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tour-actions button,
+.overlay-actions button {
+  padding: 7px 16px;
+}
+
+.touring .stats,
+.touring .tool-buttons,
+.touring #give-up,
+.touring #next {
+  display: none;
+}
+
+.touring .edge {
+  cursor: default;
+  pointer-events: none;
+}
+
+.touring .edge.tour-target {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.edge.tour-target:not(.corrected) .edge-line {
+  stroke: var(--text);
+  animation: target-pulse 1.1s ease-in-out infinite;
+}
+
+.verdict {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.level-note {
+  margin: 10px 0 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.level-stars {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.level-stars .stars {
+  display: block;
+  color: var(--defect);
+  font-size: 24px;
+  letter-spacing: 0.15em;
 }
 
 .layers {
@@ -295,7 +544,53 @@ button.primary {
 
 .check {
   fill: var(--node);
+  pointer-events: none;
   transition: fill 120ms ease-out;
+}
+
+.check.selected {
+  stroke: var(--text);
+  stroke-width: 4;
+}
+
+/* Hit areas for drawing paths: lit dots start one, and while one is selected
+   every dot and both boundary bars can finish it. Dots always catch clicks, so
+   clicking a dark dot never flips the line underneath by accident. */
+.check-hit,
+.boundary-hit {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.check-hit {
+  pointer-events: all;
+  cursor: default;
+}
+
+.check-hit.lit,
+.selecting .check-hit {
+  cursor: pointer;
+}
+
+.boundary-hit {
+  stroke-width: 26;
+}
+
+.selecting .boundary-hit {
+  pointer-events: stroke;
+}
+
+.selecting .boundary-bar {
+  stroke: var(--text);
+}
+
+.touring .check-hit,
+.touring .boundary-hit,
+.revealed .check-hit,
+.revealed .boundary-hit {
+  pointer-events: none;
 }
 
 .check.lit {
@@ -313,9 +608,35 @@ button.primary {
   animation: pop 320ms ease-out forwards;
 }
 
+.layer {
+  pointer-events: none;
+}
+
 .layer line {
   stroke-linecap: round;
-  pointer-events: none;
+}
+
+.layer-preview line {
+  stroke: var(--text);
+  stroke-width: 7;
+  stroke-opacity: 0.4;
+}
+
+.layer-hint line {
+  stroke: var(--text);
+  stroke-width: 5;
+  stroke-dasharray: 3 8;
+  animation: hint-march 0.8s linear infinite;
+}
+
+.pair-ring {
+  fill: none;
+  stroke-width: 3;
+}
+
+.pair-label {
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .layer-errors line {
@@ -364,6 +685,24 @@ button.primary {
   }
 }
 
+@keyframes hint-march {
+  to {
+    stroke-dashoffset: -11;
+  }
+}
+
+@keyframes target-pulse {
+  0%,
+  100% {
+    stroke-width: 5;
+    opacity: 0.65;
+  }
+  50% {
+    stroke-width: 9;
+    opacity: 1;
+  }
+}
+
 @keyframes banner-in {
   from {
     transform: translateY(-6px);
@@ -385,6 +724,8 @@ button.primary {
 
 .overlay-card {
   max-width: 460px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   padding: 22px 26px 24px;
   background: var(--panel);
   border: 1px solid var(--panel-border);
@@ -401,6 +742,36 @@ button.primary {
   color: #c4cbd5;
 }
 
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.key li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.key li::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--swatch);
+}
+
+.key .key-defect { --swatch: var(--defect); }
+.key .key-player { --swatch: var(--player); }
+.key .key-errors { --swatch: var(--errors); }
+.key .key-mwpm { --swatch: var(--mwpm); }
+.key .key-chain { --swatch: var(--chain); }
+
 @media (max-width: 860px) {
   .topbar {
     padding: 12px 16px;
@@ -415,6 +786,19 @@ button.primary {
     padding: 12px 16px;
   }
 
+  .levels {
+    padding: 12px 16px;
+  }
+
+  .touring .side {
+    order: -1;
+  }
+
+  #level-map {
+    max-height: none;
+    min-height: 0;
+  }
+
   #board {
     height: auto;
     aspect-ratio: 1 / 1;
@@ -423,12 +807,19 @@ button.primary {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .check.lit {
+  .check.lit,
+  .level.current .level-node {
     animation: none;
     filter: drop-shadow(0 0 7px var(--defect));
   }
 
-  .banner {
+  .banner,
+  .layer-hint line,
+  .edge.tour-target:not(.corrected) .edge-line {
     animation: none;
+  }
+
+  .edge.tour-target:not(.corrected) .edge-line {
+    stroke-width: 7;
   }
 }

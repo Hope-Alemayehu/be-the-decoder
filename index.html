@@ -10,33 +10,71 @@
   <body>
     <header class="topbar">
       <h1>Be the Decoder</h1>
-      <label class="field">
+      <label id="preset-field" class="field" hidden>
         <span class="field-label">Difficulty</span>
         <select id="preset"></select>
       </label>
-      <div class="field">
+      <div id="level-field" class="field" hidden>
+        <span class="field-label">Level</span>
+        <strong id="level-label"></strong>
+      </div>
+      <div id="seed-field" class="field" hidden>
         <span class="field-label">Seed</span>
         <a id="seed" title="Link to replay this round"></a>
       </div>
-      <div class="field">
+      <div id="defects-field" class="field" hidden>
         <span class="field-label">Defects</span>
         <strong id="defect-count">0</strong>
       </div>
+      <button id="levels-button" type="button" hidden>Levels</button>
+      <button id="help-open" type="button">How to play</button>
     </header>
 
-    <main class="layout">
+    <main id="levels-screen" class="levels" hidden>
+      <div class="levels-header">
+        <h2 id="levels-progress"></h2>
+        <button id="free-play" type="button">Free play</button>
+      </div>
+      <svg id="level-map" role="group" aria-label="Level path"></svg>
+    </main>
+
+    <main id="game-screen" class="layout" hidden>
       <section class="play">
         <svg id="board" role="group" aria-label="Surface code lattice"></svg>
         <div class="controls">
-          <button id="submit" class="primary" type="button">Submit</button>
-          <button id="give-up" type="button">Give up</button>
-          <button id="next" type="button">Next round</button>
+          <div class="tool-buttons">
+            <button id="undo" type="button" title="Undo (Z)">Undo</button>
+            <button id="clear" type="button" title="Clear all your flips">Clear</button>
+            <button id="hint" type="button" title="Hint (H)">Hint</button>
+          </div>
+          <div class="round-buttons">
+            <button id="submit" class="primary" type="button" title="Submit (Enter)">Submit</button>
+            <button id="give-up" type="button">Give up</button>
+            <button id="next" type="button" title="Next (N)">Next round</button>
+          </div>
         </div>
       </section>
 
       <aside class="side">
+        <div id="tour-card" class="tour-card" hidden>
+          <p id="tour-count" class="tour-count"></p>
+          <h2 id="tour-title"></h2>
+          <div id="tour-body"></div>
+          <div id="tour-why" class="tour-why" hidden></div>
+          <div class="tour-actions">
+            <button id="tour-next" class="primary" type="button">Next</button>
+            <button id="tour-skip" type="button">Skip tour</button>
+          </div>
+        </div>
+
         <div id="banner" class="banner" hidden></div>
         <p id="banner-detail" class="banner-detail" hidden></p>
+        <p id="verdict" class="verdict" hidden></p>
+        <p id="level-note" class="level-note" hidden></p>
+        <p id="level-stars" class="level-stars" hidden>
+          <span id="level-stars-icons" class="stars" aria-hidden="true"></span>
+          <span id="level-stars-text"></span>
+        </p>
 
         <fieldset id="layers" class="layers" hidden>
           <legend>Layers</legend>
@@ -100,7 +138,26 @@
           which would be a logical error. The reveal then shows the real errors and how a
           minimum-weight perfect matching decoder did on the same round.
         </p>
-        <button id="help-close" class="primary" type="button">Start decoding</button>
+        <p>
+          Beat a level to unlock the next one. If you lose or give up, you try again with a new
+          puzzle. Earn up to three stars: win, keep your fix as short as MWPM's, and do it on your
+          first try without a hint. Free play gives you endless rounds at any difficulty.
+        </p>
+        <p>
+          To draw a whole path at once, click a defect and then another dot or a boundary bar.
+          Shortcuts: Z undo, H hint, Enter submit, N next, Esc cancel.
+        </p>
+        <ul class="key">
+          <li class="key-defect">Defect</li>
+          <li class="key-player">Your correction</li>
+          <li class="key-errors">Hidden errors</li>
+          <li class="key-mwpm">MWPM correction</li>
+          <li class="key-chain">Logical chain</li>
+        </ul>
+        <div class="overlay-actions">
+          <button id="help-close" class="primary" type="button">Got it</button>
+          <button id="help-tour" type="button">Take the tour</button>
+        </div>
       </div>
     </div>
 
